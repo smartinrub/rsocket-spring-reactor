@@ -1,15 +1,14 @@
 package com.sergiomartinrubio.springrsocketserver;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.rsocket.messaging.RSocketStrategiesCustomizer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.codec.CharSequenceEncoder;
-import org.springframework.core.codec.StringDecoder;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+
+import java.time.Instant;
 
 @SpringBootApplication
 public class SpringRsocketServerApplication {
@@ -17,25 +16,35 @@ public class SpringRsocketServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpringRsocketServerApplication.class, args);
     }
+}
 
-    @Bean
-    RSocketStrategiesCustomizer strategiesCustomizer() {
-        return strategies -> strategies
-                .decoder(StringDecoder.allMimeTypes())
-                .encoder(CharSequenceEncoder.allMimeTypes());
+@Controller
+class GreetingRSocketController {
+    @MessageMapping("greet")
+    GreetingResponse greet(GreetingRequest request) {
+        return new GreetingResponse(request.getName());
     }
+}
 
-    @Controller
-    class ServerController {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+class GreetingRequest {
+    private String name;
+}
+@Data
+class GreetingResponse {
 
-        @MessageMapping("request.stream")
-        Flux<String> requestStream(String payload) {
-            return Mono.just(Integer.valueOf(payload))
-                    .doOnNext(i -> System.out.printf("Received: %d%n", i))
-                    .flatMapMany(i -> Flux.range(0, i))
-                    .doOnNext(i -> System.out.printf("Sending: %d%n", i))
-                    .map(String::valueOf);
-        }
+    private String greeting;
+
+    GreetingResponse() { }
+
+    GreetingResponse(String name) {
+        withGreeting("hello" + name + " @ " + Instant.now());
+    }
+    GreetingResponse withGreeting(String message) {
+        this.greeting = message;
+        return this;
     }
 
 }

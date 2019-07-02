@@ -23,6 +23,7 @@
     <modules>
         <module>rsocket-server</module>
         <module>rsocket-client</module>
+        <module>spring-rsocket-client</module>
     </modules>
 
     <dependencies>
